@@ -1,0 +1,24 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  controller:
+    build: ./controller
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  worker:
+    build: ./worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: 3
